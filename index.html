@@ -43,7 +43,12 @@
         .cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
         .cart-item-details { flex-grow: 1; }
         .cart-item-title { font-weight: 600; display: block; }
-        
+
+        .cart-controls { display: flex; align-items: center; background: #f1f5f9; border-radius: 5px; overflow: hidden; }
+        .cart-controls button { border: none; background: transparent; padding: 5px 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
+        .cart-controls button:hover { background: #e2e8f0; color: var(--primary); }
+        .qty-value { padding: 0 10px; font-weight: 600; min-width: 20px; text-align: center; }
+
         .cart-footer { padding: 25px; background: #f8fafc; border-top: 1px solid #eee; }
         .checkout-btn { width: 100%; padding: 16px; background: var(--primary-dark); color: white; border: none; border-radius: 12px; cursor: pointer; }
     </style>
@@ -132,8 +137,6 @@
                     price: card.querySelector('.price_currency').innerText,
                 };
 
-                console.log(productInfo);
-
                 const cartItemHTML = `
                     <div class="cart-item" data-id="${productInfo.id}">
                         <div class="cart-item__img">
@@ -144,7 +147,9 @@
                             <div class="cart-item-price">${productInfo.price}</div>
                         </div>
                         <div class="cart-controls">
-                             <span class="qty-value">1 шт.</span>
+                             <button data-action="minus">-</button>
+                             <span class="qty-value" data-counter>1</span>
+                             <button data-action="plus">+</button>
                         </div>
                     </div>
                 `;
@@ -152,6 +157,28 @@
 
                 toggleCart();
                 calcTotal();
+            }
+
+            if (event.target.dataset.action === 'plus' || event.target.dataset.action === 'minus') {
+                
+                const counterWrapper = event.target.closest('.cart-controls');
+                const counter = counterWrapper.querySelector('[data-counter]');
+                const cartItem = event.target.closest('.cart-item');
+
+                if (event.target.dataset.action === 'plus') {
+                    counter.innerText = ++counter.innerText;
+                }
+
+                if (event.target.dataset.action === 'minus') {
+                
+                    if (event.target.closest('.cart-wrapper') && parseInt(counter.innerText) === 1) {
+                         cartItem.remove();
+                    } else {
+                        counter.innerText = --counter.innerText;
+                    }
+                }
+
+                calcTotal(); 
             }
         });
 
@@ -162,15 +189,21 @@
         function calcTotal() {
             const cartItems = document.querySelectorAll('.cart-item');
             let total = 0;
+            let totalCount = 0;
             
             cartItems.forEach(item => {
                 const priceEl = item.querySelector('.cart-item-price');
+                const countEl = item.querySelector('[data-counter]');
+                
                 const price = parseInt(priceEl.innerText.replace('₴', '').trim());
-                total += price;
+                const count = parseInt(countEl.innerText);
+
+                total += price * count;
+                totalCount += count;
             });
 
             cartTotalSpan.innerText = total;
-            cartCountSpan.innerText = cartItems.length;
+            cartCountSpan.innerText = totalCount;
         }
 
     </script>
