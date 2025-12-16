@@ -51,6 +51,9 @@
 
         .cart-footer { padding: 25px; background: #f8fafc; border-top: 1px solid #eee; }
         .checkout-btn { width: 100%; padding: 16px; background: var(--primary-dark); color: white; border: none; border-radius: 12px; cursor: pointer; }
+
+        .none { display: none; }
+        [data-cart-empty] { padding: 20px; text-align: center; color: var(--text-gray); font-size: 1.1rem; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -83,6 +86,10 @@
             
             <div id="cart-items" class="cart-wrapper"></div>
             
+            <div data-cart-empty>
+                Кошик порожній
+            </div>
+
             <div class="cart-footer">
                 <div class="cart-total-row" style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:1.2rem;">
                     <span>Загалом:</span>
@@ -137,26 +144,34 @@
                     price: card.querySelector('.price_currency').innerText,
                 };
 
-                const cartItemHTML = `
-                    <div class="cart-item" data-id="${productInfo.id}">
-                        <div class="cart-item__img">
-                            <img src="${productInfo.imgSrc}" alt="${productInfo.title}">
+                const itemInCart = cartWrapper.querySelector(`[data-id="${productInfo.id}"]`);
+
+                if (itemInCart) {
+                    const counterElement = itemInCart.querySelector('[data-counter]');
+                    counterElement.innerText = parseInt(counterElement.innerText) + 1;
+                } else {
+                    const cartItemHTML = `
+                        <div class="cart-item" data-id="${productInfo.id}">
+                            <div class="cart-item__img">
+                                <img src="${productInfo.imgSrc}" alt="${productInfo.title}">
+                            </div>
+                            <div class="cart-item-details">
+                                <div class="cart-item-title">${productInfo.title}</div>
+                                <div class="cart-item-price">${productInfo.price}</div>
+                            </div>
+                            <div class="cart-controls">
+                                 <button data-action="minus">-</button>
+                                 <span class="qty-value" data-counter>1</span>
+                                 <button data-action="plus">+</button>
+                            </div>
                         </div>
-                        <div class="cart-item-details">
-                            <div class="cart-item-title">${productInfo.title}</div>
-                            <div class="cart-item-price">${productInfo.price}</div>
-                        </div>
-                        <div class="cart-controls">
-                             <button data-action="minus">-</button>
-                             <span class="qty-value" data-counter>1</span>
-                             <button data-action="plus">+</button>
-                        </div>
-                    </div>
-                `;
-                cartWrapper.insertAdjacentHTML('beforeend', cartItemHTML);
+                    `;
+                    cartWrapper.insertAdjacentHTML('beforeend', cartItemHTML);
+                }
 
                 toggleCart();
                 calcTotal();
+                toggleCartStatus();
             }
 
             if (event.target.dataset.action === 'plus' || event.target.dataset.action === 'minus') {
@@ -179,6 +194,7 @@
                 }
 
                 calcTotal(); 
+                toggleCartStatus();
             }
         });
 
@@ -205,6 +221,22 @@
             cartTotalSpan.innerText = total;
             cartCountSpan.innerText = totalCount;
         }
+
+        function toggleCartStatus() {
+            const cartWrapper = document.querySelector('.cart-wrapper');
+            const cartEmptyBadge = document.querySelector('[data-cart-empty]');
+            const orderForm = document.querySelector('.cart-footer');
+
+            if (cartWrapper.children.length > 0) {
+                cartEmptyBadge.classList.add('none');
+                orderForm.classList.remove('none');
+            } else {
+                cartEmptyBadge.classList.remove('none');
+                orderForm.classList.add('none');
+            }
+        }
+
+        toggleCartStatus();
 
     </script>
 </body>
